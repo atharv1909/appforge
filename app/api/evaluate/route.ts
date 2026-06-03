@@ -114,13 +114,13 @@ export async function GET(req: NextRequest) {
     const result = await runSingleEval(p.id, p.prompt, 'real');
     results.push(result);
     // Small delay to avoid rate limits
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 5000));
   }
 
   for (const p of EDGE_PROMPTS) {
     const result = await runSingleEval(p.id, p.prompt, 'edge');
     results.push(result);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 5000));
   }
 
   return NextResponse.json({ results });
