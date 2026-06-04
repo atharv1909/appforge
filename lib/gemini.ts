@@ -40,7 +40,32 @@ function cleanJsonResponse(text: string): string {
   let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
   const jsonStart = cleaned.search(/[\[{]/);
   if (jsonStart > 0) cleaned = cleaned.substring(jsonStart);
-  return cleaned;
+  
+  // Try to fix truncated JSON by finding last valid closing bracket
+  try {
+    JSON.parse(cleaned);
+    return cleaned;
+  } catch {
+    // Try to fix truncated JSON
+    const lastBrace = cleaned.lastIndexOf('}');
+    const lastBracket = cleaned.lastIndexOf(']');
+    const lastValid = Math.max(lastBrace, lastBracket);
+    if (lastValid > 0) {
+      cleaned = cleaned.substring(0, lastValid + 1);
+      // Count unclosed braces and close them
+      let opens = 0;
+      let arrOpens = 0;
+      for (const ch of cleaned) {
+        if (ch === '{') opens++;
+        else if (ch === '}') opens--;
+        else if (ch === '[') arrOpens++;
+        else if (ch === ']') arrOpens--;
+      }
+      cleaned += '}'.repeat(Math.max(0, opens));
+      cleaned += ']'.repeat(Math.max(0, arrOpens));
+    }
+    return cleaned;
+  }
 }
 
 function sleep(ms: number) {
