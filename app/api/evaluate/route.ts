@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       failure_reason: null,
     });
 
-  } catch (err: any) {
+ } catch (err: any) {
     return NextResponse.json({
       prompt_id: id, prompt, prompt_type: type,
       success: false, status: 'failed',
