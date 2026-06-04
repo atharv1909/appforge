@@ -533,6 +533,33 @@ export default function Home() {
               </pre>
             </div>
 
+            {/* ERD Diagram */}
+<div style={{
+  background: '#0e0e1a',
+  border: '1px solid #1e1e2e',
+  borderRadius: '16px',
+  overflow: 'hidden',
+  marginBottom: '24px',
+}}>
+  <div style={{
+    padding: '14px 24px',
+    borderBottom: '1px solid #1e1e2e',
+    background: '#080810',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  }}>
+    <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 600 }}>
+      Entity Relationship Diagram
+    </div>
+    <div style={{ fontSize: '12px', color: '#2a2a4a' }}>
+      {finalOutput.stages.schema.db_schema.tables.length} tables · auto-generated from DB schema
+    </div>
+  </div>
+  <div style={{ padding: '20px' }}
+    dangerouslySetInnerHTML={{ __html: finalOutput.erd }}
+  />
+</div>
             {/* Generated Code */}
             <div style={{
               background: '#0e0e1a',
