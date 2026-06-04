@@ -6,7 +6,7 @@ import { runValidation } from '@/lib/validator';
 import { repairSchema } from '@/lib/repairer';
 import { generateRuntime } from '@/lib/runtime-generator';
 import { v4 as uuidv4 } from 'uuid';
-
+import { generateRuntime, generateERD } from '@/lib/runtime-generator';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
