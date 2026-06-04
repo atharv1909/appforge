@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 const modeConfig = {
   fast:     { temperature: 0.3, maxTokens: 2048, description: 'Fast mode — fewer details, ~8s' },
   balanced: { temperature: 0.2, maxTokens: 4096, description: 'Balanced mode — default, ~15s' },
-  deep:     { temperature: 0.1, maxTokens: 8192, description: 'Deep mode — max detail, ~25s' },
+  deep:     { temperature: 0.1, maxTokens: 5500, description: 'Deep mode — max detail, ~25s' },
 };
 const config = modeConfig[mode as keyof typeof modeConfig];
 
