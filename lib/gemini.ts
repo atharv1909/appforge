@@ -13,7 +13,7 @@ export async function callGemini(
   for (let i = 0; i <= retries; i++) {
     try {
       const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: prompt }],
         temperature,
         max_tokens: maxTokens,
