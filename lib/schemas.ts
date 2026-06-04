@@ -25,9 +25,9 @@ export const DesignSchema = z.object({
   flows: z.array(z.object({
     name: z.string(),
     trigger: z.string(),
-    steps: z.array(z.string()).min(2),
+    steps: z.array(z.string()).min(1).catch(['start', 'end']),
     outcome: z.string(),
-  })),
+  })).catch([]),
   auth_model: z.object({
     type: z.enum(['RBAC', 'simple', 'none']).catch('RBAC'),
     roles: z.array(z.string()),
