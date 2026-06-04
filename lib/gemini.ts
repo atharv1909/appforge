@@ -1,8 +1,14 @@
 import Groq from 'groq-sdk';
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY!,
-});
+const groq1 = new Groq({ apiKey: process.env.GROQ_API_KEY! });
+const groq2 = new Groq({ apiKey: process.env.GROQ_API_KEY_2! });
+
+let callCount = 0;
+
+function getClient() {
+  callCount++;
+  return callCount % 2 === 0 ? groq2 : groq1;
+}
 
 export async function callGemini(
   prompt: string,
@@ -12,7 +18,8 @@ export async function callGemini(
 ): Promise<string> {
   for (let i = 0; i <= retries; i++) {
     try {
-      const completion = await groq.chat.completions.create({
+      const client = getClient();
+      const completion = await client.chat.completions.create({
         model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: prompt }],
         temperature,
@@ -23,7 +30,7 @@ export async function callGemini(
       return cleanJsonResponse(text);
     } catch (err: any) {
       if (i === retries) throw err;
-      await sleep(2000 * (i + 1));
+      await sleep(3000 * (i + 1));
     }
   }
   throw new Error('Groq API failed after retries');
