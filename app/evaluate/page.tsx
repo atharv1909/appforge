@@ -338,6 +338,9 @@ export default function EvaluatePage() {
                         <td style={{ padding: '11px 16px', fontSize: '12px', color: r.conflicts_detected > 0 ? '#f59e0b' : '#2a2a4a', fontFamily: 'monospace' }}>
                           {r.conflicts_detected || '—'}
                         </td>
+                        <td style={{ padding: '11px 16px', fontSize: '11px', color: '#ef4444', fontFamily: 'monospace', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+  {r.failure_reason || '—'}
+</td>
                       </tr>
                     ))}
                   </tbody>
