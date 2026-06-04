@@ -39,10 +39,10 @@ export const DesignSchema = z.object({
     type: z.enum(['one-to-many', 'many-to-many', 'one-to-one']).catch('one-to-many'),
     field: z.string(),
   })),
-  navigation: z.object({
-    sidebar: z.array(z.string()),
-    topbar: z.array(z.string()),
-  }),
+ navigation: z.object({
+    sidebar: z.array(z.string()).catch([]),
+    topbar: z.array(z.string()).catch([]),
+  }).catch({ sidebar: [], topbar: [] }),
 });
 
 export const ColumnSchema = z.object({
@@ -117,7 +117,7 @@ export const SchemaOutputSchema = z.object({
     strategy: z.enum(['JWT', 'session']).catch('JWT'),
     token_expiry: z.string(),
     roles: z.array(AuthRoleSchema).min(1),
-    protected_routes: z.array(z.string()),
+    protected_routes: z.array(z.string()).catch([]),
   }),
 });
 
