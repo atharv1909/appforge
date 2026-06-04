@@ -279,7 +279,7 @@ export default function EvaluatePage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: '#080810' }}>
-                      {['ID', 'Category', 'Status', 'Latency', 'Errors Found', 'Repaired', 'Assumptions', 'Conflicts'].map(h => (
+                      {['ID', 'Category', 'Status', 'Latency', 'Errors Found', 'Repaired', 'Assumptions', 'Conflicts', 'Failure Reason'].map(h => (
                         <th key={h} style={{
                           padding: '10px 16px',
                           textAlign: 'left',
