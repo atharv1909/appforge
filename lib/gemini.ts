@@ -25,7 +25,6 @@ export async function callGemini(
         temperature,
         max_tokens: maxTokens,
       });
-
       const text = completion.choices[0]?.message?.content || '';
       return cleanJsonResponse(text);
     } catch (err: any) {
@@ -40,32 +39,51 @@ function cleanJsonResponse(text: string): string {
   let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
   const jsonStart = cleaned.search(/[\[{]/);
   if (jsonStart > 0) cleaned = cleaned.substring(jsonStart);
-  
-  // Try to fix truncated JSON by finding last valid closing bracket
+
+  // If valid JSON, return immediately
   try {
     JSON.parse(cleaned);
     return cleaned;
   } catch {
-    // Try to fix truncated JSON
-    const lastBrace = cleaned.lastIndexOf('}');
-    const lastBracket = cleaned.lastIndexOf(']');
-    const lastValid = Math.max(lastBrace, lastBracket);
-    if (lastValid > 0) {
-      cleaned = cleaned.substring(0, lastValid + 1);
-      // Count unclosed braces and close them
-      let opens = 0;
-      let arrOpens = 0;
-      for (const ch of cleaned) {
-        if (ch === '{') opens++;
-        else if (ch === '}') opens--;
-        else if (ch === '[') arrOpens++;
-        else if (ch === ']') arrOpens--;
-      }
-      cleaned += '}'.repeat(Math.max(0, opens));
-      cleaned += ']'.repeat(Math.max(0, arrOpens));
+    // Truncated JSON — try to repair by slicing at last valid position
+    // and closing any open braces/brackets
+    try {
+      const repaired = repairJson(cleaned);
+      JSON.parse(repaired); // verify repair worked
+      return repaired;
+    } catch {
+      // Return as-is and let Zod .catch() fallbacks handle it
+      return cleaned;
     }
-    return cleaned;
   }
+}
+
+function repairJson(str: string): string {
+  let inString = false;
+  let escape = false;
+  let opens: string[] = [];
+  let lastValidIdx = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+
+    if (ch === '{' || ch === '[') {
+      opens.push(ch === '{' ? '}' : ']');
+    } else if (ch === '}' || ch === ']') {
+      if (opens.length > 0) opens.pop();
+      lastValidIdx = i;
+    }
+  }
+
+  // Slice to last valid closing char and close remaining opens
+  let repaired = str.substring(0, lastValidIdx + 1);
+  repaired += opens.reverse().join('');
+  return repaired;
 }
 
 function sleep(ms: number) {
