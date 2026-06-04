@@ -105,6 +105,7 @@ const config = modeConfig[mode as keyof typeof modeConfig];
       emit({ stage: 'runtime', status: 'running' });
       const s6Start = Date.now();
       const runtime = generateRuntime(schema);
+const erd = generateERD(schema);
       stageLatencies['runtime'] = Date.now() - s6Start;
       emit({ stage: 'runtime', status: 'done', data: runtime });
 
