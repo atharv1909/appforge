@@ -31,15 +31,7 @@ export const DesignSchema = z.object({
   auth_model: z.object({
     type: z.enum(['RBAC', 'simple', 'none']).catch('RBAC'),
     roles: z.array(z.string()),
-    permissions: z.record(z.string(), z.unknown()).transform(val => {
-  const result: Record<string, string[]> = {};
-  for (const [k, v] of Object.entries(val)) {
-    if (Array.isArray(v)) result[k] = v;
-    else if (typeof v === 'object' && v !== null) result[k] = Object.values(v as any).flat().map(String);
-    else result[k] = [String(v)];
-  }
-  return result;
-}),
+    permissions: z.unknown().transform(() => ({})),
   }),
   entity_relations: z.array(z.object({
     from: z.string(),
