@@ -125,6 +125,7 @@ const erd = generateERD(schema);
           repair_attempts: repairStats.attempts,
         },
         runtime,
+erd,
         metrics: {
           total_latency_ms: Date.now() - startTime,
           stage_latencies: stageLatencies,
