@@ -26,7 +26,105 @@ export function generateRuntime(schema: SchemaOutput): RuntimeOutput {
     issues,
   };
 }
+export function generateERD(schema: SchemaOutput): string {
+  const tables = schema.db_schema.tables;
+  const tableWidth = 180;
+  const tableHeaderHeight = 36;
+  const rowHeight = 24;
+  const padding = 40;
+  const cols = Math.min(3, tables.length);
+  const rows = Math.ceil(tables.length / cols);
 
+  const totalWidth = cols * (tableWidth + padding) + padding;
+  const maxRows = Math.max(...Array.from({ length: cols }, (_, ci) =>
+    tables.filter((_, i) => i % cols === ci).length
+  ));
+  const maxTableHeight = tableHeaderHeight + rowHeight * 8;
+  const totalHeight = rows * (maxTableHeight + padding) + padding;
+
+  const tablePositions: Record<string, { x: number; y: number; height: number }> = {};
+
+  const tableSvgs = tables.map((table, idx) => {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const x = padding + col * (tableWidth + padding);
+    const y = padding + row * (maxTableHeight + padding);
+    const height = tableHeaderHeight + Math.min(table.columns.length, 8) * rowHeight;
+
+    tablePositions[table.name] = { x, y, height };
+
+    const columnRows = table.columns.slice(0, 8).map((col, ci) => {
+      const isPK = col.primary_key;
+      const isFK = !!col.foreign_key;
+      const icon = isPK ? '🔑' : isFK ? '🔗' : '·';
+      const cy = tableHeaderHeight + ci * rowHeight;
+      return `
+        <rect x="${x}" y="${y + cy}" width="${tableWidth}" height="${rowHeight}" 
+          fill="${ci % 2 === 0 ? '#0d0d18' : '#0a0a12'}" />
+        <text x="${x + 10}" y="${y + cy + 16}" font-size="10" fill="${isPK ? '#f59e0b' : isFK ? '#6366f1' : '#475569'}" font-family="monospace">
+          ${icon}
+        </text>
+        <text x="${x + 24}" y="${y + cy + 16}" font-size="10" fill="${isPK ? '#f1f5f9' : '#94a3b8'}" font-family="monospace">
+          ${col.name.length > 16 ? col.name.substring(0, 16) + '..' : col.name}
+        </text>
+        <text x="${x + tableWidth - 8}" y="${y + cy + 16}" font-size="9" fill="#2a2a4a" font-family="monospace" text-anchor="end">
+          ${col.type}
+        </text>
+      `;
+    }).join('');
+
+    const moreText = table.columns.length > 8
+      ? `<text x="${x + tableWidth / 2}" y="${y + height - 6}" font-size="9" fill="#2a2a4a" text-anchor="middle" font-family="monospace">+${table.columns.length - 8} more</text>`
+      : '';
+
+    return `
+      <rect x="${x}" y="${y}" width="${tableWidth}" height="${height}" rx="6" fill="#12121f" stroke="#2a2a4a" stroke-width="1"/>
+      <rect x="${x}" y="${y}" width="${tableWidth}" height="${tableHeaderHeight}" rx="6" fill="#1e1e3a"/>
+      <rect x="${x}" y="${y + tableHeaderHeight - 6}" width="${tableWidth}" height="6" fill="#1e1e3a"/>
+      <text x="${x + tableWidth / 2}" y="${y + 22}" font-size="12" font-weight="bold" fill="#818cf8" text-anchor="middle" font-family="monospace">
+        ${table.name}
+      </text>
+      ${columnRows}
+      ${moreText}
+    `;
+  });
+
+  // Draw FK relationship lines
+  const lines: string[] = [];
+  tables.forEach(table => {
+    table.columns.forEach(col => {
+      if (col.foreign_key) {
+        const refTable = col.foreign_key.split('.')[0];
+        const from = tablePositions[table.name];
+        const to = tablePositions[refTable];
+        if (from && to) {
+          const x1 = from.x + tableWidth;
+          const y1 = from.y + from.height / 2;
+          const x2 = to.x;
+          const y2 = to.y + to.height / 2;
+          const mx = (x1 + x2) / 2;
+          lines.push(`
+            <path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" 
+              stroke="#6366f1" stroke-width="1.5" fill="none" stroke-dasharray="4,3" opacity="0.6"/>
+            <circle cx="${x1}" cy="${y1}" r="3" fill="#6366f1" opacity="0.8"/>
+            <circle cx="${x2}" cy="${y2}" r="3" fill="#6366f1" opacity="0.8"/>
+          `);
+        }
+      }
+    });
+  });
+
+  return `<svg viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" style="background:#080810;border-radius:8px;width:100%;height:auto;">
+    <defs>
+      <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1a1a2a" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid)"/>
+    ${lines.join('')}
+    ${tableSvgs.join('')}
+  </svg>`;
+}
 function generateReactComponents(schema: SchemaOutput): { name: string; code: string }[] {
   return schema.ui_schema.pages.map(page => {
     const componentName = page.name.replace(/\s+/g, '') + 'Page';
